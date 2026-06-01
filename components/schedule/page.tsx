@@ -70,6 +70,7 @@ END:VCALENDAR`;
   };
 
   const handleExport = () => {
+    const now = new Date();
     if (schedules.length === 0) {
       toast.error('Tidak ada jadwal untuk diexport');
       return;

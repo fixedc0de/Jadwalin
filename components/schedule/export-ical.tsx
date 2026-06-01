@@ -1,3 +1,4 @@
+// components/schedule/export-ical.tsx
 'use client';
 
 import { Download } from 'lucide-react';
@@ -17,31 +18,32 @@ interface Schedule {
 }
 
 export function ExportIcalButton({ schedules }: { schedules: Schedule[] }) {
-  const generateIcal = () => {
+  const handleExport = () => {
     const now = new Date();
-    const timestamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const dayMap: Record<string, number> = {
-      'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6
-    };
+    if (schedules.length === 0) {
+      toast.error('Tidak ada jadwal untuk diexport');
+      return;
+    }
 
-    const events = schedules.map(s => {
-      const formatDate = (time: string) => {
-        const [hours, minutes] = time.split(':');
-        return `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}01T${hours}${minutes}00`;
+    try {
+      const timestamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      const dayMap: Record<string, number> = {
+        'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6
       };
 
-      const dayNum = dayMap[s.hari] || 1;
-      const currentDay = now.getDay() || 7;
-      const daysUntil = ((dayNum - currentDay + 7) % 7) || 7;
-      const eventDate = new Date(now);
-      eventDate.setDate(now.getDate() + daysUntil);
-      
-      const dateStr = eventDate.toISOString().split('T')[0].replace(/-/g, '');
-      const dtStart = `${dateStr}T${s.waktuMulai.replace(':','')}00`;
-      const dtEnd = `${dateStr}T${s.waktuSelesai.replace(':','')}00`;
-      const rruleDay = ['MO','TU','WE','TH','FR','SA'][dayNum-1];
+      const events = schedules.map(s => {
+        const dayNum = dayMap[s.hari] || 1;
+        const currentDay = now.getDay() || 7;
+        const daysUntil = ((dayNum - currentDay + 7) % 7) || 7;
+        const eventDate = new Date(now);
+        eventDate.setDate(now.getDate() + daysUntil);
+        
+        const dateStr = eventDate.toISOString().split('T')[0].replace(/-/g, '');
+        const dtStart = `${dateStr}T${s.waktuMulai.replace(':','')}00`;
+        const dtEnd = `${dateStr}T${s.waktuSelesai.replace(':','')}00`;
+        const rruleDay = ['MO','TU','WE','TH','FR','SA'][dayNum-1];
 
-      return `BEGIN:VEVENT
+        return `BEGIN:VEVENT
 UID:${s.id}@jadwalin.app
 DTSTAMP:${timestamp}
 DTSTART;VALUE=DATE-TIME:${dtStart}
@@ -52,9 +54,9 @@ LOCATION:${s.ruangan || 'TBA'}
 CATEGORIES:KULIAH
 RRULE:FREQ=WEEKLY;BYDAY=${rruleDay}
 END:VEVENT`;
-    }).join('\n');
+      }).join('\n');
 
-    return `BEGIN:VCALENDAR
+      const ical = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//JADWALIN//ID
 CALSCALE:GREGORIAN
@@ -63,27 +65,18 @@ X-WR-CALNAME:Jadwal Kuliah
 X-WR-TIMEZONE:Asia/Jakarta
 ${events}
 END:VCALENDAR`;
-  };
 
-  const handleExport = () => {
-    if (schedules.length === 0) {
-      toast.error('Tidak ada jadwal untuk diexport');
-      return;
-    }
-
-    const now = new Date();
-
-    try {
-      const ical = generateIcal();
       const blob = new Blob([ical], { type: 'text/calendar;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
+      // ✅ now sudah terdefinisi di scope ini
       a.download = `jadwal-kuliah-${now.getFullYear()}.ics`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
       toast.success('File .ics berhasil diunduh!');
     } catch (err) {
       console.error(err);
@@ -95,7 +88,6 @@ END:VCALENDAR`;
     <button
       onClick={handleExport}
       className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-accent transition-colors text-sm"
-      title="Export ke Google Calendar / Outlook"
     >
       <Download size={16} /> Export iCal
     </button>
