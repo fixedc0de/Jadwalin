@@ -107,7 +107,7 @@ export default async function DashboardPage() {
             {recentSchedules.map((s) => (
               <div key={s.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: s.warnaKategori }} />
+                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: s.warnaKategori ?? '#3B82F6' }} />
                   <div>
                     <p className="font-medium">{s.mataPelajaran}</p>
                     <p className="text-sm text-muted-foreground">{s.hari}, {s.waktuMulai}-{s.waktuSelesai}</p>

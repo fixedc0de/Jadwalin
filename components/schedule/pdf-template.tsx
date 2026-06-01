@@ -55,7 +55,7 @@ export const SchedulePDF = ({ schedules, userName }: { schedules: Schedule[]; us
           <Text style={styles.colJam}>{s.waktuMulai}-{s.waktuSelesai}</Text>
           <Text style={styles.colMatkul}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={[styles.colorDot, { backgroundColor: s.warnaKategori }]} />
+              <View style={[styles.colorDot, { backgroundColor: s.warnaKategori ?? '#3B82F6'}]} />
               <Text>{s.mataPelajaran}</Text>
             </View>
           </Text>

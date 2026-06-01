@@ -154,7 +154,7 @@ export default function SchedulePage() {
                   <td className="p-3">{s.waktuMulai} - {s.waktuSelesai}</td>
                   <td className="p-3">
                     <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: s.warnaKategori }} />
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: s.warnaKategori ?? '#3B82F6' }} />
                       <span className="font-medium">{s.mataPelajaran}</span>
                       {s.sks && <span className="text-xs text-muted-foreground">({s.sks} SKS)</span>}
                     </div>

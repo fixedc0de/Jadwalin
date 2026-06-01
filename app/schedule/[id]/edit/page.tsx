@@ -232,7 +232,7 @@ export default function EditSchedulePage({ params }: { params: Promise<{ id: str
               min="1"
               max="6"
               value={formData.sks || ''}
-              onChange={(e) => setFormData({ ...formData, sks: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, sks: parseInt(e.target.value) || null })}
               className="w-full px-3 py-2 border rounded bg-background focus:ring-2 focus:ring-primary/50 outline-none"
               placeholder="Contoh: 3"
               disabled={submitting || deleting}
