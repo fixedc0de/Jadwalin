@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Loader2, LogOut, Shield, User, Mail } from 'lucide-react';
+import { Loader2, LogOut, Shield, User, Mail, Link as LinkIcon, Save } from 'lucide-react';
+import { ShareManager } from '@/components/share/share-manager';
 
 interface UserProfile {
   id: string;
   nim: string;
   namaLengkap: string;
   email: string | null;
+  kelasCode: string | null;
   createdAt: string;
 }
 
@@ -23,6 +25,7 @@ export default function ProfilePage() {
     newPassword: '',
     confirmPassword: '',
   });
+  const [kelasCode, setKelasCode] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -40,10 +43,34 @@ export default function ProfilePage() {
       }
       const data = await res.json();
       setUser(data);
+      if (data.kelasCode) setKelasCode(data.kelasCode);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateKelasCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdating(true);
+    
+    try {
+      const res = await fetch('/api/profile/kelas', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kelasCode: kelasCode.trim() || null }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal update kode kelas');
+
+      toast.success('Kode kelas berhasil diperbarui!');
+      fetchProfile();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -103,7 +130,7 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Pengaturan Akun</h1>
@@ -147,6 +174,56 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Kelas Code Section */}
+      <div className="bg-card rounded-xl border p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Shield className="h-5 w-5 text-muted-foreground" />
+          <h3 className="font-semibold">Kode Kelas</h3>
+        </div>
+
+        <p className="text-sm text-muted-foreground mb-4">
+          Bergabung dengan kelas untuk melihat jadwal gabungan bersama teman sekelas.
+        </p>
+
+        <form onSubmit={handleUpdateKelasCode} className="flex gap-3">
+          <input
+            type="text"
+            value={kelasCode}
+            onChange={(e) => setKelasCode(e.target.value)}
+            placeholder="Contoh: TI-2A, RPL-B, dll"
+            className="flex-1 px-3 py-2 border rounded bg-background focus:ring-2 focus:ring-primary/50 outline-none"
+            disabled={updating}
+            maxLength={50}
+          />
+          <button
+            type="submit"
+            disabled={updating || !kelasCode.trim()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+          >
+            {updating && <Loader2 className="h-4 w-4 animate-spin" />}
+            <Save className="h-4 w-4" />
+            Simpan
+          </button>
+        </form>
+
+        {kelasCode && (
+          <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+            <p className="text-sm text-green-800 dark:text-green-200">
+              ✅ Anda tergabung dalam kelas <strong>{kelasCode}</strong>
+            </p>
+            <a
+              href={`/classes/${encodeURIComponent(kelasCode)}`}
+              className="text-sm text-green-600 dark:text-green-400 hover:underline mt-1 inline-block"
+            >
+              Lihat Jadwal Kelas →
+            </a>
+          </div>
+        )}
+      </div>
+
+      {/* Share Jadwal Section */}
+      <ShareManager />
 
       {/* Change Password Form */}
       <div className="bg-card rounded-xl border p-6">

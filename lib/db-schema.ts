@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, integer, text, time, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, integer, text, time, pgEnum, boolean, index } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -12,9 +12,12 @@ export const users = pgTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }),
   namaLengkap: varchar('nama_lengkap', { length: 255 }).notNull(),
+  kelasCode: varchar('kelas_code', { length: 50 }), // Field baru untuk kode kelas/kelompok
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  idxKelasCode: index('idx_users_kelas_code').on(table.kelasCode), // Index untuk performa query kelas
+}));
 
 // Table: schedules
 export const schedules = pgTable('schedules', {
@@ -32,6 +35,20 @@ export const schedules = pgTable('schedules', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Table: share_tokens - untuk fitur sharing jadwal (read-only link)
+export const shareTokens = pgTable('share_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  tokenHash: varchar('token_hash', { length: 255 }).notNull().unique(), // Hash dari UUID token untuk security
+  expiresAt: timestamp('expires_at').notNull(), // Token expire 30 hari dari pembuatan
+  revoked: boolean('revoked').default(false).notNull(), // Flag untuk revoke manual
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  idxTokenHash: index('idx_share_tokens_token_hash').on(table.tokenHash),
+  idxUserId: index('idx_share_tokens_user_id').on(table.userId),
+  idxExpiresAt: index('idx_share_tokens_expires_at').on(table.expiresAt),
+}));
 
 // Export schemas for validation (Zod)
 export const insertUserSchema = createInsertSchema(users).pick({
