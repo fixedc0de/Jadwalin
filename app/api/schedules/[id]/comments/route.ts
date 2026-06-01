@@ -1,30 +1,25 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { scheduleComments, schedules, collaborations } from '@/lib/db-schema';
+import { scheduleComments, schedules, collaborations, users as usersTable } from '@/lib/db-schema';
 import { eq, and, or, inArray, desc } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
 // Helper to check if user has access to schedule (owner or collaborator)
 async function hasScheduleAccess(userId: string, scheduleId: string): Promise<boolean> {
-  // Check if owner
-  const [schedule] = await db.select()
+  const [result] = await db.select({
+    scheduleUserId: schedules.userId,
+    collabStatus: collaborations.status,
+  })
     .from(schedules)
-    .where(and(eq(schedules.id, scheduleId), eq(schedules.userId, userId)));
+    .leftJoin(collaborations, and(
+      eq(collaborations.ownerUserId, schedules.userId),
+      eq(collaborations.collaboratorUserId, userId)
+    ))
+    .where(eq(schedules.id, scheduleId));
 
-  if (schedule) return true;
+  if (!result) return false;
 
-  // Check if collaborator with accepted status
-  const [collab] = await db.select()
-    .from(collaborations)
-    .where(
-      and(
-        eq(collaborations.collaboratorUserId, userId),
-        eq(collaborations.ownerUserId, schedule.userId!),
-        eq(collaborations.status, 'accepted')
-      )
-    );
-
-  return !!collab;
+  return result.scheduleUserId === userId || result.collabStatus === 'accepted';
 }
 
 // POST /api/schedules/[id]/comments - Add comment
@@ -38,7 +33,7 @@ export async function POST(
   const { id: scheduleId } = await params;
 
   try {
-    // Verify schedule access
+    // Verify schedule exists
     const [schedule] = await db.select()
       .from(schedules)
       .where(eq(schedules.id, scheduleId));
@@ -51,7 +46,6 @@ export async function POST(
     const isOwner = schedule.userId === user.id;
     
     if (!isOwner) {
-      // Check collaboration
       const [collab] = await db.select()
         .from(collaborations)
         .where(
@@ -102,7 +96,7 @@ export async function GET(
   const { id: scheduleId } = await params;
 
   try {
-    // Verify schedule access
+    // Verify schedule exists
     const [schedule] = await db.select()
       .from(schedules)
       .where(eq(schedules.id, scheduleId));
@@ -138,11 +132,11 @@ export async function GET(
       isResolved: scheduleComments.isResolved,
       createdAt: scheduleComments.createdAt,
       updatedAt: scheduleComments.updatedAt,
-      authorName: users.namaLengkap,
+      authorName: usersTable.namaLengkap,
       authorId: scheduleComments.userId,
     })
       .from(scheduleComments)
-      .leftJoin(users, eq(scheduleComments.userId, users.id))
+      .leftJoin(usersTable, eq(scheduleComments.userId, usersTable.id))
       .where(eq(scheduleComments.scheduleId, scheduleId))
       .orderBy(desc(scheduleComments.createdAt));
 
