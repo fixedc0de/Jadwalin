@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { collaborations, users as usersTable } from '@/lib/db-schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
+
+// Moved to the top for better code organization
+const usersTableForCollab = usersTable;
 
 // DELETE /api/collaborations/[collaborationId] - Remove collaborator
 export async function DELETE(
@@ -15,7 +18,6 @@ export async function DELETE(
   const { collaborationId } = await params;
 
   try {
-    // Get the collaboration
     const [collab] = await db.select()
       .from(collaborations)
       .where(eq(collaborations.id, collaborationId));
@@ -78,8 +80,8 @@ export async function GET(
       return NextResponse.json({ error: 'Kolaborasi tidak ditemukan' }, { status: 404 });
     }
 
-    // Check access
-    if (collab.owner.id !== user.id && collab.collaborator.id !== user.id) {
+    // Check access using optional chaining (?.) to handle potential null values from leftJoin
+    if (collab.owner?.id !== user.id && collab.collaborator?.id !== user.id) {
       return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
     }
 
@@ -89,5 +91,3 @@ export async function GET(
     return NextResponse.json({ error: err.message || 'Gagal memuat detail kolaborasi' }, { status: 500 });
   }
 }
-
-const usersTableForCollab = usersTable;
