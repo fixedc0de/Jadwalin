@@ -9,8 +9,6 @@ import { getSession } from "@/lib/auth";
 // SDK baru secara default mencari process.env.GEMINI_API_KEY,
 // tapi karena kamu menggunakan GOOGLE_GEMINI_API_KEY, kita masukkan secara eksplisit.
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY || "" });
-const modelsList = await ai.models.list();
-console.log("Model yang tersedia:", JSON.stringify(modelsList, null, 2));
 
 export async function POST(request: NextRequest) {
   try {
@@ -108,7 +106,7 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
 
     // 6. Konfigurasi model dan generasi konten dengan SDK baru
     const response = await ai.models.generateContent({ 
-      model: "models/gemini-1.5-flash", // Kamu bisa mempertahankan model ini atau menggantinya
+      model: "models/gemini-2.0-flash-lite", // Kamu bisa mempertahankan model ini atau menggantinya
       contents: contextPrompt,
       config: {
         systemInstruction: systemPrompt // System prompt dipindahkan ke dalam config
