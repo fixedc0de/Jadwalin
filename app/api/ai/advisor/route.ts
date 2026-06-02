@@ -9,7 +9,7 @@ import { getSession } from "@/lib/auth";
 // SDK Groq akan otomatis mencari nilai dari process.env.GROQ_API_KEY
 const groq = new Groq();
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   try {
     // 1. Verifikasi user yang login
     const user = await getSession();
