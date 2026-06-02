@@ -104,7 +104,7 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
 
     // 6. Konfigurasi model dan generasi konten
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-1.5-flash",
       systemInstruction: systemPrompt 
     });
 
