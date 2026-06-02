@@ -11,6 +11,7 @@ export default function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [userName, setUserName] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
   
   const pathname = usePathname();
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function Navbar() {
   }, [pathname]);
 
   const checkAuth = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch('/api/auth/session');
       const data = await res.json();
@@ -28,6 +30,8 @@ export default function Navbar() {
       if (data.user?.namaLengkap) setUserName(data.user.namaLengkap);
     } catch {
       setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -61,7 +65,7 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
+            {!isLoading && navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -87,51 +91,55 @@ export default function Navbar() {
             </button>
 
             {/* Auth Buttons / User Menu */}
-            {isAuthenticated ? (
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <User className="h-4 w-4" />
-                  <span className="text-sm font-medium hidden sm:inline">
-                    {userName || 'Akun'}
-                  </span>
-                </button>
-                
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-popover border rounded-lg shadow-lg py-1 z-50">
-                    <Link
-                      href="/profile"
-                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
-                      onClick={() => setShowUserMenu(false)}
-                    >
-                      <User className="h-4 w-4" /> Profile
-                    </Link>
+            {!isLoading && (
+              <>
+                {isAuthenticated ? (
+                  <div className="relative">
                     <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-accent text-destructive"
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors"
                     >
-                      <LogOut className="h-4 w-4" /> Logout
+                      <User className="h-4 w-4" />
+                      <span className="text-sm font-medium hidden sm:inline">
+                        {userName || 'Akun'}
+                      </span>
                     </button>
+                    
+                    {showUserMenu && (
+                      <div className="absolute right-0 mt-2 w-48 bg-popover border rounded-lg shadow-lg py-1 z-50">
+                        <Link
+                          href="/profile"
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <User className="h-4 w-4" /> Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-accent text-destructive"
+                        >
+                          <LogOut className="h-4 w-4" /> Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="hidden md:flex items-center gap-2">
+                    <Link
+                      href="/login"
+                      className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                    >
+                      Daftar
+                    </Link>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="hidden md:flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="px-4 py-2 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
-                >
-                  Daftar
-                </Link>
-              </div>
+              </>
             )}
 
             {/* Mobile Menu Button */}
@@ -149,7 +157,7 @@ export default function Navbar() {
         {isOpen && (
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col gap-2">
-              {navLinks.map((link) => (
+              {!isLoading && navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -163,7 +171,7 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              {!isAuthenticated && (
+              {!isLoading && !isAuthenticated && (
                 <>
                   <Link
                     href="/login"
