@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai"; // Menggunakan SDK baru
+import Groq from "groq-sdk";
 import { db } from "@/lib/db";
 import { schedules } from "@/lib/db-schema";
 import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
 
-// Inisialisasi Google Gen AI SDK
-// SDK baru secara default mencari process.env.GEMINI_API_KEY,
-// tapi karena kamu menggunakan GOOGLE_GEMINI_API_KEY, kita masukkan secara eksplisit.
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY || "" });
+// Inisialisasi Groq Client
+// SDK Groq akan otomatis mencari nilai dari process.env.GROQ_API_KEY
+const groq = new Groq();
 
-export async function POST(request: NextRequest) {
+export async function POST(request) {
   try {
     // 1. Verifikasi user yang login
     const user = await getSession();
@@ -60,7 +59,7 @@ Tugas Analisis:
 3. **Berikan Saran Praktis**:
    - Jika jadwal terlalu padat: Sarankan teknik istirahat (Pomodoro 25/5), waktu tidur cukup, manajemen stres, dan prioritas tugas.
    - Jika ada celah waktu: Sarankan aktivitas produktif seperti review materi, mengerjakan tugas, olahraga ringan, atau networking.
-   - Berikan tips spesifik berdasarkan pola jadwal (misal: "Selasa sangat padat, siapkan malam sebelumnya").
+   - Berikan tips spesifik berdasarkan pola jadwal.
 
 Format Output:
 - Jawaban dalam bahasa Indonesia yang santai dan bersahabat.
@@ -76,12 +75,6 @@ Format Output:
   3. **💡 Saran Manajemen Waktu** - 3-5 saran praktis dan spesifik
   4. **⚠️ Peringatan** (jika ada jadwal terlalu padat atau potensi burnout)
   5. **🌟 Kata Motivasi** - Kalimat penutup yang menyemangati
-
-Gaya Bahasa:
-- Ramah, mendukung, dan tidak menghakimi
-- Gunakan kata "kamu" untuk pendekatan personal
-- Hindari jargon teknis yang berlebihan
-- Fokus pada keseimbangan antara produktivitas dan kesejahteraan mental
 `;
 
     // 4. Siapkan konteks untuk AI dengan data jadwal
@@ -93,8 +86,8 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
 `;
 
     // 5. Validasi API Key
-    if (!process.env.GOOGLE_GEMINI_API_KEY) {
-      console.error("GOOGLE_GEMINI_API_KEY tidak ditemukan di environment variables");
+    if (!process.env.GROQ_API_KEY) {
+      console.error("GROQ_API_KEY tidak ditemukan di environment variables");
       return NextResponse.json(
         { 
           error: "Konfigurasi AI belum lengkap.",
@@ -104,17 +97,25 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
       );
     }
 
-    // 6. Konfigurasi model dan generasi konten dengan SDK baru
-    const response = await ai.models.generateContent({ 
-      model: "gemini-1.5-flash", // Kamu bisa mempertahankan model ini atau menggantinya
-      contents: contextPrompt,
-      config: {
-        systemInstruction: systemPrompt // System prompt dipindahkan ke dalam config
-      }
+    // 6. Konfigurasi model dan generasi konten dengan Groq
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: contextPrompt,
+        }
+      ],
+      // Menggunakan model Llama 3 70B untuk hasil analisis yang paling cerdas dan cepat
+      model: "llama3-70b-8192", 
+      temperature: 0.7, // Sedikit kreativitas namun tetap logis
+      max_tokens: 1024, // Batas panjang maksimal kata yang dikembalikan
     });
 
-    // Mengambil teks dari respons (sekarang berupa properti, bukan fungsi)
-    const aiAdvice = response.text;
+    const aiAdvice = chatCompletion.choices[0]?.message?.content;
 
     if (!aiAdvice || aiAdvice.trim() === "") {
       throw new Error("AI tidak menghasilkan saran.");
@@ -127,7 +128,7 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
     });
 
   } catch (error) {
-    console.error("Error di API AI Advisor:", error);
+    console.error("Error di API AI Advisor Groq:", error);
     
     let errorMessage = "Gagal mendapatkan saran dari AI.";
     let detailedMessage = "";
@@ -135,11 +136,11 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
     if (error instanceof Error) {
       detailedMessage = error.message;
       if (error.message.includes("API key")) {
-        errorMessage = "API Key Google Gemini tidak valid atau kadaluarsa.";
-      } else if (error.message.includes("quota")) {
-        errorMessage = "Kuota API Google Gemini telah habis.";
+        errorMessage = "API Key Groq tidak valid.";
+      } else if (error.message.includes("rate") || error.message.includes("limit")) {
+        errorMessage = "Terlalu banyak permintaan. Kuota rate-limit Groq tercapai.";
       } else if (error.message.includes("network") || error.message.includes("fetch")) {
-        errorMessage = "Gagal terhubung ke layanan AI. Periksa koneksi internet Anda.";
+        errorMessage = "Gagal terhubung ke layanan AI Groq. Periksa koneksi internet Anda.";
       }
     }
 
