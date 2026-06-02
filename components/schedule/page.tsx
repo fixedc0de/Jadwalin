@@ -13,7 +13,7 @@ interface Schedule {
   waktuSelesai: string;
   hari: string;
   sks: number | null;
-  warnaKategori: string;
+  warnaKategori: string | null;
   catatan: string | null;
 }
 
