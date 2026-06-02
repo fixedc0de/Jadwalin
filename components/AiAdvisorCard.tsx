@@ -14,7 +14,7 @@ interface ScheduleEvent {
   waktuSelesai: string;
   hari: "Senin" | "Selasa" | "Rabu" | "Kamis" | "Jumat" | "Sabtu";
   sks: number | null;
-  warnaKategori: string;
+  warnaKategori: string | null;
   catatan: string | null;
   createdAt: Date;
   updatedAt: Date;
