@@ -13,7 +13,7 @@
     "dev:clean": "pkill -9 -f next && rm -rf .next && npm run dev"
   },
   "dependencies": {
-    "@google/generative-ai@latest": "^0.21.0",
+    "@google/generative-ai": "^0.21.0",
     "@hookform/resolvers": "^3.9.0",
     "@react-pdf/renderer": "^3.4.4",
     "@vercel/postgres": "^0.10.0",
