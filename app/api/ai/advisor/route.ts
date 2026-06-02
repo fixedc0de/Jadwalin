@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai"; // Menggunakan SDK baru
 import { db } from "@/lib/db";
 import { schedules } from "@/lib/db-schema";
 import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
 
-// Inisialisasi Google Generative AI
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || "");
+// Inisialisasi Google Gen AI SDK
+// SDK baru secara default mencari process.env.GEMINI_API_KEY,
+// tapi karena kamu menggunakan GOOGLE_GEMINI_API_KEY, kita masukkan secara eksplisit.
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY || "" });
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,15 +104,17 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
       );
     }
 
-    // 6. Konfigurasi model dan generasi konten
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash-exp",
-      systemInstruction: systemPrompt 
+    // 6. Konfigurasi model dan generasi konten dengan SDK baru
+    const response = await ai.models.generateContent({ 
+      model: "gemini-3.5-flash", // Kamu bisa mempertahankan model ini atau menggantinya
+      contents: contextPrompt,
+      config: {
+        systemInstruction: systemPrompt // System prompt dipindahkan ke dalam config
+      }
     });
 
-    const result = await model.generateContent(contextPrompt);
-    const response = await result.response;
-    const aiAdvice = response.text();
+    // Mengambil teks dari respons (sekarang berupa properti, bukan fungsi)
+    const aiAdvice = response.text;
 
     if (!aiAdvice || aiAdvice.trim() === "") {
       throw new Error("AI tidak menghasilkan saran.");
