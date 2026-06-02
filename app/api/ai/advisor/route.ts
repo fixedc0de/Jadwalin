@@ -110,7 +110,7 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
         }
       ],
       // Menggunakan model Llama 3 70B untuk hasil analisis yang paling cerdas dan cepat
-      model: "llama3-70b-8192", 
+      model: "llama-3.3-70b-versatile",
       temperature: 0.7, // Sedikit kreativitas namun tetap logis
       max_tokens: 1024, // Batas panjang maksimal kata yang dikembalikan
     });
