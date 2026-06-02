@@ -5,6 +5,7 @@ import { schedules } from '@/lib/db-schema';
 import { eq, and } from 'drizzle-orm';
 import Link from 'next/link';
 import { Calendar, Plus, BookOpen, Clock } from 'lucide-react';
+import AiAdvisorCard from '@/components/AiAdvisorCard';
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -98,6 +99,9 @@ export default async function DashboardPage() {
           <p className="text-sm text-muted-foreground">Update password dan kelola data profil Anda</p>
         </Link>
       </div>
+
+      {/* AI Advisor Card */}
+      <AiAdvisorCard scheduleEvents={recentSchedules} />
 
       {/* Recent Schedules */}
       {recentSchedules.length > 0 && (
