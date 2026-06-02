@@ -106,7 +106,7 @@ Mohon analisis jadwal saya dan berikan saran manajemen waktu yang personal, prak
 
     // 6. Konfigurasi model dan generasi konten dengan SDK baru
     const response = await ai.models.generateContent({ 
-      model: "models/gemini-2.0-flash-lite", // Kamu bisa mempertahankan model ini atau menggantinya
+      model: "gemini-1.5-flash", // Kamu bisa mempertahankan model ini atau menggantinya
       contents: contextPrompt,
       config: {
         systemInstruction: systemPrompt // System prompt dipindahkan ke dalam config
