@@ -139,20 +139,25 @@ export default function AiAdvisorCard({ scheduleEvents }: AiAdvisorCardProps) {
           )}
           
           {advice && (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div className="text-sm text-gray-600 dark:text-gray-300 space-y-3">
               <ReactMarkdown
-                className="prose prose-sm dark:prose-invert max-w-none 
-                  prose-headings:font-semibold 
-                  prose-h1:text-lg prose-h1:text-gray-800 dark:prose-h1:text-white
-                  prose-h2:text-base prose-h2:text-gray-700 dark:prose-h2:text-gray-200
-                  prose-p:text-gray-600 dark:prose-p:text-gray-300
-                  prose-ul:list-none prose-ul:pl-0
-                  prose-li:flex prose-li:items-start prose-li:gap-2 prose-li:text-gray-600 dark:prose-li:text-gray-300
-                  prose-strong:text-gray-800 dark:prose-strong:text-white
-                  prose-a:text-blue-600 dark:prose-a:text-blue-400
-                  prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic
-                  prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-                  prose-pre:bg-gray-800 prose-pre:text-gray-100 prose-pre:p-4 prose-pre:rounded-lg"
+                components={{
+                  h1: ({node, ...props}) => <h1 className="text-lg font-semibold text-gray-800 dark:text-white mt-4 mb-2" {...props} />,
+                  h2: ({node, ...props}) => <h2 className="text-base font-semibold text-gray-700 dark:text-gray-200 mt-3 mb-2" {...props} />,
+                  p: ({node, ...props}) => <p className="text-gray-600 dark:text-gray-300 leading-relaxed" {...props} />,
+                  ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-1 ml-2" {...props} />,
+                  ol: ({node, ...props}) => <ol className="list-decimal list-inside space-y-1 ml-2" {...props} />,
+                  li: ({node, ...props}) => <li className="text-gray-600 dark:text-gray-300" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-semibold text-gray-800 dark:text-white" {...props} />,
+                  em: ({node, ...props}) => <em className="italic" {...props} />,
+                  blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 italic my-2" {...props} />,
+                  code: ({node, inline, ...props}: any) => 
+                    inline ? 
+                    <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-sm" {...props} /> :
+                    <code className="block bg-gray-800 text-gray-100 p-3 rounded-lg my-2 overflow-x-auto text-sm" {...props} />,
+                  pre: ({node, ...props}) => <pre className="bg-gray-800 text-gray-100 p-4 rounded-lg my-2 overflow-x-auto" {...props} />,
+                  a: ({node, ...props}) => <a className="text-blue-600 dark:text-blue-400 hover:underline" {...props} />,
+                }}
                 remarkPlugins={[remarkGfm]}
               >
                 {advice}
