@@ -1,29 +1,53 @@
+```
 # Dependencies
-node_modules
-.next
+node_modules/
 
 # Environment
-.env*.local
-!.env.example
+.env
+.env.local
+.env.*
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build outputs
+dist/
+build/
+*.egg-info/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
-.idea
-.vscode
+# Testing
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Package manager
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime
+.DS_Store
+*.bak
 *.swp
 *.swo
-
-# Logs
-*.log
-npm-debug.log*
-
-# Drizzle (keep migrations, ignore local studio db)
-drizzle/*.sql
-!drizzle/0000_*.sql
-
-# PDF exports
-*.pdf
-*.ics
+```
