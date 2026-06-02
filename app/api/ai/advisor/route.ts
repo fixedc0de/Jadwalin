@@ -9,6 +9,8 @@ import { getSession } from "@/lib/auth";
 // SDK baru secara default mencari process.env.GEMINI_API_KEY,
 // tapi karena kamu menggunakan GOOGLE_GEMINI_API_KEY, kita masukkan secara eksplisit.
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY || "" });
+const modelsList = await ai.models.list();
+console.log("Model yang tersedia:", JSON.stringify(modelsList, null, 2));
 
 export async function POST(request: NextRequest) {
   try {
